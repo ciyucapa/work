@@ -1,4 +1,4 @@
-import {createContext, useMemo} from "react";
+import {createContext, useContext, useMemo, useCallback} from "react";
 import PropTypes from 'prop-types';
 
 import {PRICES_DEFAULT_VALUE, PRICE_KEY} from "./state";
@@ -28,8 +28,32 @@ const prices = (useStorage) => {
         children: PropTypes.shape({}).isRequired,
     }
 
+    const usePrices = () => {
+        const context = useContext(pricesContext);
+
+        if (!context) {
+            throw new Error('usePrices must be used within a PricesProvider');
+        }
+
+        const {priceValue, updatePriceValue: update, priceIsReady, ...rest} = context;
+
+        const updatePriceValue = useCallback(
+            (newValue) => {
+                update(newValue);
+            },
+            [priceValue, update])
+
+        return {
+            ...rest,
+            priceValue,
+            updatePriceValue,
+            priceIsReady,
+        };
+    };
+
     return {
         PricesProvider,
+        usePrices,
     };
 };
 
